@@ -1,0 +1,103 @@
+import { createContext, useContext, useState } from "react";
+import { message } from 'antd'
+import { BACK_END_URL } from "./const.jsx";
+import { useHistory } from "react-router-dom";
+
+const AppContext = createContext();
+
+const AppContextProvider = ({ children }) => {
+    const [user, setUser] = useState(null)
+
+    const history = useHistory();
+
+    const handleLogin = async (username, password) => {
+        if (!username || !password) {
+            message.warning("Chưa nhập đủ")
+            return
+        }
+
+        try {
+            const options = {
+                method: "POST",
+                mode: "cors",
+                cache: "no-cache",
+                credentials: "same-origin",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ username, password })
+            }
+            const res = await fetch(`${BACK_END_URL}/user/login`, options)
+            const data = await res.json();
+
+            if (data.success === false) {
+                message.warning('Không tồn tại tài khoản')
+                return
+            }
+
+            setUser(data.data);
+            message.success('Đăng nhập thành công')
+            history.push('/')
+        } catch (error) {
+            console.log(error.message);
+            message.error(error.message)
+        }
+    }
+
+    const handleRegister = async (name, username, password, confirmPassword) => {
+        if (!username || !password || !name || !confirmPassword) {
+            message.warning("Chưa nhập đủ")
+            return
+        }
+
+        if (password !== confirmPassword) {
+            message.warning("Mật khẩu không khớp với nhập lại mật khẩu!")
+            return
+        }
+
+        try {
+            const options = {
+                method: "POST",
+                mode: "cors",
+                cache: "no-cache",
+                credentials: "same-origin",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ username, password, name })
+            }
+            const res = await fetch(`${BACK_END_URL}/user/register`, options)
+            const data = await res.json();
+
+            if (data.success === false) {
+                message.warning(data.message)
+                return
+            }
+
+            setUser(data.data);
+            message.success('Đăng ký thành công')
+            history.push('/')
+        } catch (error) {
+            console.log(error.message);
+            message.error(error.message)
+        }
+    }
+
+    return (
+        <AppContext.Provider value={
+            {
+                user,
+                setUser,
+                handleLogin,
+                handleRegister
+            }
+        }>
+            {children}
+        </AppContext.Provider>
+    )
+}
+
+export default AppContextProvider;
+export const useData = () => {
+    return useContext(AppContext);
+}
