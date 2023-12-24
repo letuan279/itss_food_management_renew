@@ -1,7 +1,7 @@
 import { Switch, Route, Redirect } from "react-router-dom";
 import "antd/dist/antd.css";
 import "./assets/styles/main.css";
-
+import "./assets/styles/responsive.css";
 import SignIn from "./pages/SignIn.jsx";
 import SignUp from "./pages/SignUp.jsx";
 import Nhom from "./pages/Nhom.jsx";

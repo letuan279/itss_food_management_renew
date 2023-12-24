@@ -7,6 +7,15 @@ const AppContext = createContext();
 
 const AppContextProvider = ({ children }) => {
     const [user, setUser] = useState(null)
+    const [nhom, setNhom] = useState([])
+    const [options, setOptions] = useState({
+        mode: "cors",
+        cache: "no-cache",
+        credentials: "same-origin",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    })
 
     const history = useHistory();
 
@@ -37,6 +46,16 @@ const AppContextProvider = ({ children }) => {
 
             setUser(data.data);
             message.success('Đăng nhập thành công')
+            localStorage.setItem('token-food', data.accessToken)
+            setOptions(options => {
+                return {
+                    ...options,
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${data.accessToken}`
+                    }
+                }
+            })
             history.push('/')
         } catch (error) {
             console.log(error.message);
@@ -76,6 +95,16 @@ const AppContextProvider = ({ children }) => {
 
             setUser(data.data);
             message.success('Đăng ký thành công')
+            localStorage.setItem('token-food', data.accessToken)
+            setOptions(options => {
+                return {
+                    ...options,
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${data.accessToken}`
+                    }
+                }
+            })
             history.push('/')
         } catch (error) {
             console.log(error.message);
@@ -83,13 +112,32 @@ const AppContextProvider = ({ children }) => {
         }
     }
 
+    const fetchNhom = async () => {
+        try {
+            const res = await fetch(`${BACK_END_URL}group/${user.id}`, { ...options, method: 'get' })
+            const data = await res.json();
+            setNhom(data.data.filter(item => {
+                const itemMemberIds = item.members.map(i => i.id)
+                return itemMemberIds.includes(user.id)
+            }));
+        } catch (error) {
+            console.log(error.message);
+            message.error(error.message)
+        }
+    }
+
+
+
     return (
         <AppContext.Provider value={
             {
                 user,
                 setUser,
                 handleLogin,
-                handleRegister
+                handleRegister,
+                fetchNhom,
+                nhom,
+                setNhom
             }
         }>
             {children}
